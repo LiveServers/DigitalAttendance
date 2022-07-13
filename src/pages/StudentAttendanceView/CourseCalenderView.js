@@ -77,7 +77,8 @@ const progressData = [
   },
 ];
 
-const CourseCalenderView = ({ navigation, active, setActive }) => {
+const CourseCalenderView = ({ route, navigation, active, setActive }) => {
+  const {dates,courseCode,courseTitle,progress}=route.params;
   const [open, setOpen] = React.useState(false);
   const theme = useTheme();
   const handleIconPress = () => setOpen(!open);
@@ -86,8 +87,7 @@ const CourseCalenderView = ({ navigation, active, setActive }) => {
     setActive('scan');
     navigation.navigate('LoginView');
   };
-  const determineBgColor = (index) =>
-    index % 2 === 0 ? theme.colors.accent : theme.colors.secondary;
+  const determineBgColor = () => theme.colors.accent;
   return (
     <>
       <HomePageTopComponent
@@ -98,34 +98,31 @@ const CourseCalenderView = ({ navigation, active, setActive }) => {
         title="Days Attended"
       />
       <View style={styles.parent}>
-        {progressData.map(({ title, code, progress }, index) => (
           <View
-            key={index}
             style={[
               styles.innerView,
-              { backgroundColor: determineBgColor(index), marginTop: 17 },
+              { backgroundColor: determineBgColor(), marginTop: 17 },
             ]}
           >
             <Text style={styles.innerText}>
               <Text>Course Title : </Text>
-              <Text>{title}</Text>
+              <Text>{courseTitle}</Text>
             </Text>
             <Text style={styles.innerText}>
               <Text>Course Code : </Text>
-              <Text>{code}</Text>
+              <Text>{courseCode}</Text>
             </Text>
             <View style={styles.progressView}>
               <ProgressBar
                 style={styles.progressBar}
-                progress={0.7}
+                progress={progress/100}
                 color={theme.colors.primary}
               />
-              <Text style={styles.progressTxt}>{progress}</Text>
+              <Text style={styles.progressTxt}>{progress}%</Text>
             </View>
           </View>
-        ))}
       </View>
-      <Calender />
+      <Calender dates={dates} />
       <View style={styles.fabCon}>
         <FAB setActive={setActive} active={active} navigation={navigation} />
       </View>

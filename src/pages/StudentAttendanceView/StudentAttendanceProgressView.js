@@ -113,7 +113,8 @@ const progressData = [
   },
 ];
 
-const StudentAttendanceProgressView = ({ navigation, active, setActive }) => {
+const StudentAttendanceProgressView = ({ route, navigation, active, setActive }) => {
+  const {sem, year, index, record, semIndex} = route.params;
   const [open, setOpen] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
   const theme = useTheme();
@@ -139,8 +140,13 @@ const StudentAttendanceProgressView = ({ navigation, active, setActive }) => {
   };
   const handleScrollBeginDrag = () => setVisible(false);
   const handleScrollDragEnd = () => setVisible(true);
-  const handleOpenCourseCalender = () => {
-    navigation.navigate('CourseCalenderView');
+  const handleOpenCourseCalender = (dates, courseCode, courseTitle, progress) => {
+    navigation.navigate('CourseCalenderView',{
+      dates,
+      courseCode,
+      courseTitle,
+      progress,
+    });
   };
 
   return (
@@ -155,8 +161,6 @@ const StudentAttendanceProgressView = ({ navigation, active, setActive }) => {
       <ScrollView
         onScrollEndDrag={handleScrollDragEnd}
         onScrollBeginDrag={handleScrollBeginDrag}
-        // onTouchStart={handleScrollBeginDrag}
-        // onTouchEnd={handleScrollDragEnd}
         style={styles.childContainer}
         contentContainerStyle={styles.parentContainer}
       >
@@ -164,35 +168,38 @@ const StudentAttendanceProgressView = ({ navigation, active, setActive }) => {
           <Text
             style={[{ color: theme.colors.secondary }, styles.yearTextStyles]}
           >
-            Year 1 (Semester 1.1)
+            {year} {`(${sem})`}
           </Text>
-          {progressData.map(({ title, code, progress }, index) => (
-            <Pressable key={index} onPress={handleOpenCourseCalender}>
-              <View
-                key={index}
-                style={[
-                  styles.innerView,
-                  { backgroundColor: determineBgColor(index), marginTop: 17 },
-                ]}
-              >
-                <Text style={styles.innerText}>
-                  <Text>Course Title : </Text>
-                  <Text>{title}</Text>
-                </Text>
-                <Text style={styles.innerText}>
-                  <Text>Course Code : </Text>
-                  <Text>{code}</Text>
-                </Text>
-                <View style={styles.progressView}>
-                  <ProgressBar
-                    style={styles.progressBar}
-                    progress={0.7}
-                    color={theme.colors.primary}
-                  />
-                  <Text style={styles.progressTxt}>{progress}</Text>
-                </View>
-              </View>
-            </Pressable>
+          {
+            Object.values(record.record[index][year][semIndex][sem]).map((item,index)=> (
+                <React.Fragment key={index}>
+                  <Pressable onPress={() => handleOpenCourseCalender(item.datesAttended, item.courseCode, item.courseTitle, item.progress)}>
+                    <View
+                      key={index}
+                      style={[
+                        styles.innerView,
+                        { backgroundColor: determineBgColor(index), marginTop: 17 },
+                      ]}
+                    >
+                      <Text style={styles.innerText}>
+                        <Text>Course Title : </Text>
+                        <Text>{item.courseTitle}</Text>
+                      </Text>
+                      <Text style={styles.innerText}>
+                        <Text>Course Code : </Text>
+                        <Text>{item.courseCode}</Text>
+                      </Text>
+                      <View style={styles.progressView}>
+                        <ProgressBar
+                          style={styles.progressBar}
+                          progress={item.progress/100}
+                          color={theme.colors.primary}
+                        />
+                        <Text style={styles.progressTxt}>{item.progress}%</Text>
+                      </View>
+                    </View>
+                  </Pressable>
+                </React.Fragment>
           ))}
         </View>
       </ScrollView>

@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useTheme, TextInput } from 'react-native-paper';
 import PropTypes from 'prop-types';
 import TextInputComponent from '../../components/TextInput';
 import NativeButton from '../../components/Button';
+import {auth} from "../../db/firebaseConfig";
 
 const styles = StyleSheet.create({
   container: {
@@ -50,14 +51,44 @@ const styles = StyleSheet.create({
   innerText: {
     textDecorationLine: 'underline',
   },
+  preloader: {
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent'
+  },
 });
 
 const LoginView = ({ navigation }) => {
   const theme = useTheme();
+  const [details, setDetails] = React.useState({email:"",password:""});
   const [type, setType] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const handleNavigate = () => navigation.navigate('SignUpView');
-  const handleNavigateToQRScanView = () => navigation.navigate('StudentHomePage');
+  const handleLogin = async () => {
+    try{
+      setLoading(true);
+      const response = await auth.signInWithEmailAndPassword(details.email, details.password);
+      if(response){
+        setLoading(false);
+        navigation.navigate('StudentHomePage');
+        return false;
+      }
+      return false;
+    }catch(e){
+      setLoading(false);
+      console.log("ERROR WHILE SIGNING IN", e);
+      Alert.alert(e.message);
+    }
+  }
   const handleSetType = () => setType(!type);
+  const handleTextChange = (val, name) => {
+    setDetails({...details,[name]:val});
+  }
   return (
     <View style={styles.container}>
       <Text
@@ -74,11 +105,12 @@ const LoginView = ({ navigation }) => {
         style={styles.textInput}
         autoComplete="off"
         name="registrationNumber"
-        placeholder="Registration Number"
+        placeholder="Email"
         placeholderTextColor="#955A7A"
         selectionColor="#955A7A"
         autoCorrect={false}
         autoFocus={true}
+        onChangeText={(val) => handleTextChange(val,"email")}
       />
       <TextInputComponent
         style={[styles.textInput, styles.passwordInput]}
@@ -89,6 +121,7 @@ const LoginView = ({ navigation }) => {
         autoCorrect={false}
         name="password"
         secureTextEntry={!type}
+        onChangeText={(val) => handleTextChange(val,"password")}
         right={
           <TextInput.Icon
             onPress={handleSetType}
@@ -98,13 +131,21 @@ const LoginView = ({ navigation }) => {
           />
         }
       />
-      <NativeButton
-        mode="contained"
-        title="Sign In"
-        color={theme.colors.primary}
-        style={styles.btn}
-        onPress={handleNavigateToQRScanView}
-      />
+      {
+        loading ? (
+          <View style={styles.preloader}>
+            <ActivityIndicator size="large" color="#9E9E9E"/>
+          </View>
+        ):(
+            <NativeButton
+              mode="contained"
+              title="Sign In"
+              color={theme.colors.primary}
+              style={styles.btn}
+              onPress={handleLogin}
+            />
+        )
+      }
       <Text style={[{ color: theme.colors.offset }, styles.signUpText]}>
         Dont have an account?{' '}
         <Text onPress={handleNavigate} style={styles.innerText}>
